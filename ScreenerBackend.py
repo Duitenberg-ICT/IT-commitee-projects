@@ -4,13 +4,13 @@ import numpy as np
 import requests
 # Example stock data retrieval
 
-import_ticker = "FLOW"
+import_ticker = "FLOW.AS"
 stock = yf.Ticker(import_ticker)
 info = stock.info
 # get the company name
 company_name = info['longName']
 # get the net margin
-net_margin = info['netMargin']
+net_margin = info['profitMargins']
 # get the debt to equity ratio
 debt_to_equity = info['debtToEquity']
 # get the sector
