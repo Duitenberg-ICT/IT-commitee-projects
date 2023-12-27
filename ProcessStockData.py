@@ -3,7 +3,7 @@ import json
 import numpy as np
 
 class StockScreener:
-    def __init__(self, json_file):
+    def __init__(self):
         """
         Initializes the StockScreener object.
 
@@ -14,12 +14,13 @@ class StockScreener:
         sets default numeric keys, and computes unique industries.
         """
         # Load JSON data and convert to DataFrame
+        json_file = 'stock_data.json'
         with open(json_file, 'r') as file:
             data = json.load(file)
         self.df = pd.DataFrame(data)
         
         # Set default numeric keys and convert them to numeric type
-        self.numeric_keys = ['trailingPE', 'fiveYearAvgDividendYield']
+        self.numeric_keys = ['trailingPE', 'fiveYearAvgDividendYield', 'debtToEquity','profitMargins']
         self.convert_to_numeric(self.numeric_keys)
         
         # Compute unique industries from the DataFrame
@@ -44,9 +45,35 @@ class StockScreener:
         Args:
         keys (list of str): New column names to be set as numeric keys.
         """
-        self.numeric_keys = keys
-        self.convert_to_numeric(keys)
+        valid_keys = [key for key in keys if key in self.df.columns and not pd.api.types.is_numeric_dtype(self.df[key])]
+        self.numeric_keys = valid_keys
+        self.convert_to_numeric(valid_keys)
 
+    def add_numeric_key(self, key):
+        """
+        Adds a new numeric key and converts it to a numeric type.
+
+        Args:
+        key (str): New column name to be added as a numeric key.
+        """
+        if key in self.df.columns and not pd.api.types.is_numeric_dtype(self.df[key]):
+            self.numeric_keys.append(key)
+            self.convert_to_numeric([key])
+        else:
+            print(f"Key '{key}' is not a valid column or is already numeric.")
+
+    def remove_numeric_key(self, key):
+        """
+        Removes a numeric key.
+
+        Args:
+        key (str): Column name to be removed from numeric keys.
+        """
+        if key in self.numeric_keys:
+            self.numeric_keys.remove(key)
+        else:
+            print(f"Key '{key}' is not a numeric key.")
+            
     def get_unique_industries(self):
         """
         Returns the unique industries present in the data.
@@ -71,13 +98,29 @@ class StockScreener:
         for func in stats_funcs:
             results[func.__name__] = df_selected.groupby('industry').agg(func)
         return results
+    def compareIndustry2Stock(self, industry, stock):
+        """
+        Compares the stock to the industry.
+
+        Args:
+        industry (str): The industry to compare to.
+        stock (str): The stock to compare to the industry.
+
+        Returns:
+        A dictionary with the stock and industry statistics.
+        """
+        df_selected = self.df[['industry'] + self.numeric_keys]
+        results = {}
+        results[stock] = df_selected[df_selected['industry'] == stock].describe()
+        results[industry] = df_selected[df_selected['industry'] == industry].describe()
+        return results
 
 # Usage example
-json_file = 'stock_data.json'
-screener = StockScreener(json_file)
+
+screener = StockScreener()
 
 # Updating numeric keys if needed
-screener.update_numeric_keys(['marketCap', 'volume'])
+#screener.update_numeric_keys(['marketCap', 'volume'])
 
 # Get unique industries
 print(screener.get_unique_industries())
