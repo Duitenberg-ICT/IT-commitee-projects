@@ -29,6 +29,11 @@ class StockScreener:
         
         # Compute unique industries from the DataFrame
         self.unique_industries = self.df['industry'].unique()
+        
+        self.active_filters = []
+        self.percentile_filters = []
+        self.numerical_filters = []
+        
        
 
     def convert_to_numeric(self, keys):
@@ -42,6 +47,8 @@ class StockScreener:
         """
         for key in keys:
             self.df[key] = pd.to_numeric(self.df[key], errors='coerce')
+            # Using .loc to avoid SettingWithCopyWarning
+            self.dfSelected.loc[:, key] = pd.to_numeric(self.dfSelected[key], errors='coerce')
 
     def update_numeric_keys(self, keys):
         """
@@ -81,7 +88,34 @@ class StockScreener:
             self.numeric_keys.remove(key)
             self.dfSelected = self.df[self.string_keys + self.numeric_keys]
         else:
-            print(f"Key '{key}' is not a numeric key.")
+            print(f"Key '{key}' is not a selected numeric key.")
+            
+    def get_numeric_keys(self):
+        """
+        Returns the numeric keys.
+
+        Returns:
+        A list of numeric keys.
+        """
+        return self.numeric_keys
+    
+    def get_string_keys(self):
+        """
+        Returns the string keys.
+
+        Returns:
+        A list of string keys.
+        """
+        return self.string_keys
+    
+    def get_keys(self):
+        """
+        Returns the keys.
+
+        Returns:
+        A list of keys.
+        """
+        return self.dfSelected.keys()
             
     def get_unique_industries(self):
         """
@@ -107,6 +141,7 @@ class StockScreener:
         for func in stats_funcs:
             results[func.__name__] = df_selected.groupby('industry').agg(func)
         return results
+    
     def compareIndustry2Stock(self, industry, stock):
         """
         Compares the stock to the industry.
@@ -124,26 +159,80 @@ class StockScreener:
         results[industry] = df_selected[df_selected['industry'] == industry].describe()
         return results
     
-    def filter_stocks_by_percentile(self, key, top_percentile, top=True, industry=None):
+    def add_filter(self, filter_func, *args, **kwargs):
+        """
+        Adds a filter to the active filters list and categorizes it.
+
+        Args:
+        filter_func (function): The filter function to add.
+        *args, **kwargs: Arguments for the filter function.
+        """
+        if filter_func == StockScreener.filter_stocks_by_percentile:
+            self.percentile_filters.append((filter_func, args, kwargs))
+        else:
+            self.numerical_filters.append((filter_func, args, kwargs))
+        self.active_filters.append((filter_func, args, kwargs))
+    
+    def remove_filter(self, filter_func):
+        """
+        Removes a filter from the active filters list.
+
+        Args:
+        filter_func (function): The filter function to remove.
+        """
+        self.active_filters = [(f, a, k) for f, a, k in self.active_filters if f != filter_func]
+        
+        if filter_func == StockScreener.filter_stocks_by_percentile:
+            self.percentile_filters = [(f, a, k) for f, a, k in self.percentile_filters if f != filter_func]
+        elif filter_func == StockScreener.filter_stocks_by_parameter:
+            self.numerical_filters = [(f, a, k) for f, a, k in self.numerical_filters if f != filter_func]
+        
+
+    def apply_filters(self):
+        """
+        Applies all active filters to the DataFrame sequentially, prioritizing percentile filters.
+
+        Returns:
+        A DataFrame after applying all filters.
+        """
+        #print(self.active_filters)
+        
+        filtered_df = self.dfSelected.copy()
+
+        # Apply percentile filters first
+        for filter_func, args, kwargs in self.percentile_filters:
+            filtered_df = filter_func(filtered_df, *args, **kwargs)
+
+        # Apply numerical filters next
+        for filter_func, args, kwargs in self.numerical_filters:
+            filtered_df = filter_func(filtered_df, *args, **kwargs)
+
+        return filtered_df
+    
+    
+    
+    @staticmethod
+    def filter_stocks_by_percentile(df, key, top_percentile=100, top=True, industry=None):
         """
         Filters stocks based on their ranking in a certain numerical aspect,
         optionally within a specific industry.
 
         Args:
-        key (str): The key to rank stocks by (e.g., 'profitMargins').
-        percentile (float): The percentile to use as a threshold (0 to 100).
+        df (DataFrame): The DataFrame to apply the filter to.
+        key (str): The numerical key to rank stocks by (e.g., 'profitMargins').
+        top_percentile (float): The percentile to use as a threshold (0 to 100).
         top (bool): If True, select the top percentile, else select the bottom.
         industry (str or list of str, optional): The industry or industries to filter by.
 
         Returns:
         A DataFrame with stocks in the specified percentile range, sorted from best to worst.
         """
-        if key not in self.dfSelected.columns:
-            print(f"Key '{key}' not found in selected data.")
+        if key not in df.columns:
+            print(f"Key '{key}' not found in data.")
             return None
 
-        # Copy the DataFrame and calculate percentile ranks
-        local_df = self.dfSelected.copy()
+        # Calculate percentile ranks
+        local_df = df.copy()
         local_df['percentile_rank'] = local_df[key].rank(pct=True) * 100
 
         # Filter by industry if specified
@@ -154,29 +243,76 @@ class StockScreener:
                 local_df = local_df[local_df['industry'] == industry]
 
         # Filter based on the specified percentile
-        percentile = 100- top_percentile if top else top_percentile
+        percentile = 100 - top_percentile if top else top_percentile
         if top:
             filtered_stocks = local_df[local_df['percentile_rank'] >= percentile]
         else:
             filtered_stocks = local_df[local_df['percentile_rank'] <= percentile]
 
         # Sort the DataFrame by percentile rank
-        sort_order = 'percentile_rank' if top else '-percentile_rank'
         filtered_stocks = filtered_stocks.sort_values(by='percentile_rank', ascending=top == False)
 
         # Drop the 'percentile_rank' column before returning
-        filtered_stocks = filtered_stocks.drop(columns=['percentile_rank'])
+        return filtered_stocks.drop(columns=['percentile_rank'])
+    
+    @staticmethod
+    def filter_stocks_by_parameter(df,key, min = -np.Inf, max = np.Inf, industry=None):
+        """
+        Filters stocks based on their ranking in a certain numerical aspect,
+        optionally within a specific industry.
 
+        Args:
+        df (DataFrame): The DataFrame to apply the filter to.
+        key (str): The numerical key to rank stocks by (e.g., 'profitMargins').
+        min (float): The minimum value to use as a threshold.
+        max (float): The maximum value to use as a threshold.
+        industry (str or list of str, optional): The industry or industries to filter by.
+
+        Returns:
+        A DataFrame with stocks in the specified percentile range, sorted from best to worst.
+        """
+        if key not in df.columns:
+            print(f"Key '{key}' not found in data.")
+            return None
+
+        # Calculate percentile ranks
+        local_df = df.copy()
+        #local_df['percentile_rank'] = local_df[key].rank(pct=True) * 100
+
+        # Filter by industry if specified
+        if industry:
+            if isinstance(industry, list):
+                local_df = local_df[local_df['industry'].isin(industry)]
+            else:
+                local_df = local_df[local_df['industry'] == industry]
+
+        filtered_stocks = local_df[(local_df[key] >= min) & (local_df[key] <= max)]
+        # Sort the DataFrame by percentile rank
+        filtered_stocks = filtered_stocks.sort_values(by=key, ascending=True)
+
+        # Drop the 'percentile_rank' column before returning
         return filtered_stocks
 
 # Usage example
 screener = StockScreener()
-top_10_percent_profit_margin_stocks = screener.filter_stocks_by_percentile('profitMargins', 2, top = True)
-print(top_10_percent_profit_margin_stocks)
+# Add filters
+screener.add_filter(StockScreener.filter_stocks_by_percentile, 'profitMargins', top_percentile=10, top=True)
+screener.add_filter(StockScreener.filter_stocks_by_parameter, 'trailingPE', min=15, max = 20)
+
+# Apply filters
+filtered_data = screener.apply_filters()
+print(filtered_data)
+
+screener2 = StockScreener()
+# apply hard filter
+filtered_data2 = screener2.filter_stocks_by_parameter(screener2.dfSelected, 'trailingPE', min=15, max = 20)
+#print(filtered_data2)
+
+#top_10_percent_profit_margin_stocks = screener.filter_stocks_by_percentile('profitMargins',industry='Asset Management', top = True)
+#print(top_10_percent_profit_margin_stocks)
 
 # Usage example
 
-#screener = StockScreener()
 
 # Updating numeric keys if needed
 #screener.update_numeric_keys(['marketCap', 'volume'])
