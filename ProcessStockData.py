@@ -188,7 +188,7 @@ class StockScreener:
             self.numerical_filters = [(f, a, k) for f, a, k in self.numerical_filters if f != filter_func]
         
 
-    def apply_filters(self):
+    def apply_filters(self,sortKey = None, ascending = False):
         """
         Applies all active filters to the DataFrame sequentially, prioritizing percentile filters.
 
@@ -206,6 +206,9 @@ class StockScreener:
         # Apply numerical filters next
         for filter_func, args, kwargs in self.numerical_filters:
             filtered_df = filter_func(filtered_df, *args, **kwargs)
+        
+        if sortKey in filtered_df.columns:
+            filtered_df = filtered_df.sort_values(by=sortKey, ascending=ascending)
 
         return filtered_df
     
@@ -300,7 +303,7 @@ screener.add_filter(StockScreener.filter_stocks_by_percentile, 'profitMargins', 
 screener.add_filter(StockScreener.filter_stocks_by_parameter, 'trailingPE', min=15, max = 20)
 
 # Apply filters
-filtered_data = screener.apply_filters()
+filtered_data = screener.apply_filters(sortKey='profitMargins')
 print(filtered_data)
 
 screener2 = StockScreener()
