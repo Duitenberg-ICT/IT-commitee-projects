@@ -21,10 +21,15 @@ class StockScreener:
         
         # Set default numeric keys and convert them to numeric type
         self.numeric_keys = ['trailingPE', 'fiveYearAvgDividendYield', 'debtToEquity','profitMargins']
+        self.string_keys = ['industry', 'shortName','symbol']
+        
+        self.dfSelected = self.df[self.string_keys + self.numeric_keys]
+        
         self.convert_to_numeric(self.numeric_keys)
         
         # Compute unique industries from the DataFrame
         self.unique_industries = self.df['industry'].unique()
+       
 
     def convert_to_numeric(self, keys):
         """
@@ -48,6 +53,7 @@ class StockScreener:
         valid_keys = [key for key in keys if key in self.df.columns and not pd.api.types.is_numeric_dtype(self.df[key])]
         self.numeric_keys = valid_keys
         self.convert_to_numeric(valid_keys)
+        self.dfSelected = self.df[self.string_keys + self.numeric_keys]
 
     def add_numeric_key(self, key):
         """
@@ -59,6 +65,8 @@ class StockScreener:
         if key in self.df.columns and not pd.api.types.is_numeric_dtype(self.df[key]):
             self.numeric_keys.append(key)
             self.convert_to_numeric([key])
+            self.dfSelected = self.df[self.string_keys + self.numeric_keys]
+            
         else:
             print(f"Key '{key}' is not a valid column or is already numeric.")
 
@@ -71,6 +79,7 @@ class StockScreener:
         """
         if key in self.numeric_keys:
             self.numeric_keys.remove(key)
+            self.dfSelected = self.df[self.string_keys + self.numeric_keys]
         else:
             print(f"Key '{key}' is not a numeric key.")
             
@@ -114,18 +123,68 @@ class StockScreener:
         results[stock] = df_selected[df_selected['industry'] == stock].describe()
         results[industry] = df_selected[df_selected['industry'] == industry].describe()
         return results
+    
+    def filter_stocks_by_percentile(self, key, top_percentile, top=True, industry=None):
+        """
+        Filters stocks based on their ranking in a certain numerical aspect,
+        optionally within a specific industry.
+
+        Args:
+        key (str): The key to rank stocks by (e.g., 'profitMargins').
+        percentile (float): The percentile to use as a threshold (0 to 100).
+        top (bool): If True, select the top percentile, else select the bottom.
+        industry (str or list of str, optional): The industry or industries to filter by.
+
+        Returns:
+        A DataFrame with stocks in the specified percentile range, sorted from best to worst.
+        """
+        if key not in self.dfSelected.columns:
+            print(f"Key '{key}' not found in selected data.")
+            return None
+
+        # Copy the DataFrame and calculate percentile ranks
+        local_df = self.dfSelected.copy()
+        local_df['percentile_rank'] = local_df[key].rank(pct=True) * 100
+
+        # Filter by industry if specified
+        if industry:
+            if isinstance(industry, list):
+                local_df = local_df[local_df['industry'].isin(industry)]
+            else:
+                local_df = local_df[local_df['industry'] == industry]
+
+        # Filter based on the specified percentile
+        percentile = 100- top_percentile if top else top_percentile
+        if top:
+            filtered_stocks = local_df[local_df['percentile_rank'] >= percentile]
+        else:
+            filtered_stocks = local_df[local_df['percentile_rank'] <= percentile]
+
+        # Sort the DataFrame by percentile rank
+        sort_order = 'percentile_rank' if top else '-percentile_rank'
+        filtered_stocks = filtered_stocks.sort_values(by='percentile_rank', ascending=top == False)
+
+        # Drop the 'percentile_rank' column before returning
+        filtered_stocks = filtered_stocks.drop(columns=['percentile_rank'])
+
+        return filtered_stocks
+
+# Usage example
+screener = StockScreener()
+top_10_percent_profit_margin_stocks = screener.filter_stocks_by_percentile('profitMargins', 2, top = True)
+print(top_10_percent_profit_margin_stocks)
 
 # Usage example
 
-screener = StockScreener()
+#screener = StockScreener()
 
 # Updating numeric keys if needed
 #screener.update_numeric_keys(['marketCap', 'volume'])
 
 # Get unique industries
-print(screener.get_unique_industries())
+#print(screener.get_unique_industries())
 
 # Calculate statistics
-statistics = screener.calculate_statistics([np.mean, np.median])
-print(statistics['mean'])
-print(statistics['median'])
+#statistics = screener.calculate_statistics([np.mean, np.median])
+#print(statistics['mean'])
+#print(statistics['median'])
