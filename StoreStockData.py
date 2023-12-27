@@ -42,7 +42,7 @@ stock_data = []
 progress_counter = [0]  # Using a list to make it mutable
 
 # Starting threads
-num_threads = 100
+num_threads = 10
 threads = []
 
 for _ in range(num_threads):
