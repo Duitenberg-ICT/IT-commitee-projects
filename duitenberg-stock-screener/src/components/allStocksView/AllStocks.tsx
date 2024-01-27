@@ -1,8 +1,14 @@
 import React from "react";
+import StocksViewButtons from "./StocksViewButtons";
+import StocksTable from "./StocksTable";
 
 function AllStocks() {
     return (
-        <p>Hello World!</p>
+        <>
+            <StocksViewButtons />
+            <hr className="separator"/>
+            <StocksTable />
+        </>
     );
 }
 
