@@ -1,0 +1,105 @@
+/* BUTTON SECTION BEGIN */
+
+.stock-screener-buttons {
+    display: flex;
+}
+
+.view-button {
+    border: 2px solid #ccc;
+    border-radius: 7px;
+    padding: 3px 5px;
+    background-color: #ffffff;
+    margin-right: 5px;
+    cursor: pointer;
+}
+
+.filters-button {
+    border: 2px solid #ccc;
+    border-radius: 7px;
+    padding: 3px 5px;
+    background-color: #fff;
+    margin-right: 5px;
+    cursor: pointer;
+}
+
+.refresh-button {
+    display: flex;
+    align-items: center;
+    border: 2px solid #ccc;
+    border-radius: 7px;
+    padding: 5px;
+    background-color: #ffffff;
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+.filters-button:hover,
+.view-button:hover,
+.refresh-button:hover {
+    background-color: #c2c2c2;
+}
+
+.filters-button:active,
+.view-button:active,
+.refresh-button:active {
+    background-color: #e0e0e0;
+}
+
+.refresh-button img {
+    width: 15px;
+    height: 15px;
+    padding: 0;
+}
+
+/* BUTTON SECTION END */
+
+/* STOCK SCREENER TABLE BEGIN */
+
+.stocks-table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.stocks-table th, .stocks-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+.stocks-table th {
+    padding: 0;
+    background-color: #f2f2f2;
+}
+
+.search-form {
+    display: flex;
+    margin: 10px;
+}
+
+label {
+    position: relative;
+}
+
+input[type="text"] {
+    width: 200px; /* Adjust the width based on your preference */
+    padding: 5px;
+    border: 1px solid #b0c4de; /* Light blue border color */
+    border-radius: 5px; /* Adjust the border radius based on your preference */
+    outline: none; /* Remove the default focus outline */
+}
+
+input[type="text"]:focus {
+    border-color: #4682b4; /* Change border color on focus to a darker blue */
+    box-shadow: 0 0 5px rgba(70, 130, 180, 0.5); /* Add a subtle box shadow on focus */
+}
+
+/* STOCK SCREENER TABLE END */
+
+/* FILTERS WINDOW BEGIN */
+
+.filters-window {
+    display: none;
+    background-color: black;
+}
+
+/* FILTERS WINDOW END */
