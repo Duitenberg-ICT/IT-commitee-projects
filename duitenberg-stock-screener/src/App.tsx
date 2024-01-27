@@ -1,17 +1,20 @@
+import React from 'react';
 import './App.css';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import React from "react";
+
+import AllStocks from "./components/allStocksView/AllStocks";
 
 function App() {
     return (
-        <div className="App">
+        <div>
             <Header/>
             <hr className="separator" />
+
+            <AllStocks />
         </div>
     );
 }
 
-const Header = () => {
+function Header() {
     return (
         <div className="container-fluid">
             <div className="row">
@@ -24,6 +27,6 @@ const Header = () => {
             </div>
         </div>
     );
-};
+}
 
 export default App;
