@@ -1,4 +1,23 @@
-.stocks-table {
-    align-self: center;
-    font-weight: lighter;
+table.stocks-table {
+
+}
+
+table.stocks-table th {
+    font-family: "Franklin Gothic Medium", serif;
+    font-weight: bold;
+    font-size: 20px;
+    text-align: center;
+    padding: 7px 10px;
+    background-color: #ffffff;
+    color: #6c6c6c;
+}
+
+table.stocks-table td {
+    font-family: "Franklin Gothic", serif;
+    font-weight: normal;
+    font-size: 18px;
+    text-align: center;
+    padding: 7px 7px;
+    background-color: #f6f6f6;
+    color: #1a1a1a;
 }

@@ -72,7 +72,7 @@ function StocksTable() {
     };
 
     return (
-        <table className="table table-light table-hover stocks-table">
+        <table className="table table-bordered table-light table-hover stocks-table">
             <thead>
             <tr>
                 <th scope="col">Symbol</th>
