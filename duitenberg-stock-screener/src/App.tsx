@@ -1,6 +1,7 @@
 import React from 'react';
 import './App.css';
 
+import DetailedStock from "./components/detailedStockView/DetailedStock";
 import AllStocks from "./components/allStocksView/AllStocks";
 
 function App() {
@@ -9,7 +10,7 @@ function App() {
             <Header/>
             <hr className="separator" />
 
-            <AllStocks />
+            <DetailedStock />
         </div>
     );
 }
