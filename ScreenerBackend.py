@@ -7,6 +7,7 @@ import requests
 import_ticker = "FLOW.AS"
 stock = yf.Ticker(import_ticker)
 info = stock.info
+
 # get the company name
 company_name = info['longName']
 # get the net margin

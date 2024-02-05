@@ -116,7 +116,16 @@ class StockScreener:
         A list of keys.
         """
         return self.dfSelected.keys()
-            
+    
+    def get_possible_keys(self):
+        """
+        Returns the possible keys.
+
+        Returns:
+        A list of possible keys.
+        """
+        return self.df.keys()
+    
     def get_unique_industries(self):
         """
         Returns the unique industries present in the data.
@@ -186,7 +195,14 @@ class StockScreener:
             self.percentile_filters = [(f, a, k) for f, a, k in self.percentile_filters if f != filter_func]
         elif filter_func == StockScreener.filter_stocks_by_parameter:
             self.numerical_filters = [(f, a, k) for f, a, k in self.numerical_filters if f != filter_func]
-        
+       
+    def clear_filters(self):
+        """
+        Clears all active filters.
+        """
+        self.active_filters = []
+        self.percentile_filters = []
+        self.numerical_filters = [] 
 
     def apply_filters(self,sortKey = None, ascending = False):
         """
@@ -310,7 +326,7 @@ screener2 = StockScreener()
 # apply hard filter
 filtered_data2 = screener2.filter_stocks_by_parameter(screener2.dfSelected, 'trailingPE', min=15, max = 20)
 #print(filtered_data2)
-
+print(screener2.get_possible_keys())
 #top_10_percent_profit_margin_stocks = screener.filter_stocks_by_percentile('profitMargins',industry='Asset Management', top = True)
 #print(top_10_percent_profit_margin_stocks)
 

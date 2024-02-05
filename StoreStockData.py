@@ -3,6 +3,7 @@ import requests
 import yfinance as yf
 import threading
 import queue
+import datetime
 import subprocess
 import os
 
@@ -57,3 +58,10 @@ for thread in threads:
 # Saving to a JSON file
 with open('stock_data.json', 'w') as file:
     json.dump(stock_data, file, indent=4)
+    
+# Get current date and time
+current_date_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+# Write the update date to a txt file
+with open('last_updated.txt', 'w') as file:
+    file.write(f"{current_date_time}")
