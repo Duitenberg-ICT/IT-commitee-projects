@@ -2,7 +2,7 @@ import pandas as pd
 import json
 import numpy as np
 from flask import Flask, request, jsonify
-import ProcessStockData as psd
+import BackEndStockScreener.ProcessingStockInformation.ProcessStockData as psd
 import ssl  # For HTTPS
 
 app = Flask(__name__)

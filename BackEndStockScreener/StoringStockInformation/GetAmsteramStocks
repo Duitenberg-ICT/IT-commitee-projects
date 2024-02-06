@@ -1,0 +1,16 @@
+import requests
+from bs4 import BeautifulSoup
+
+def get_amsterdam_stocks():
+    """This function will return a list of all the stocks listed on the Amsterdam stock exchange"""
+    # Fetching the data
+    response = requests.get("https://live.euronext.com/en/markets/amsterdam/equities/list")
+    print("Response has been fetched")
+    #Put the response data into a txt file
+    with open('amsterdam_stocks.txt', 'w') as file:
+        file.write(response.text)
+    
+    soup = BeautifulSoup(response.text, 'html.parser')
+    
+    # Extracting the data
+    stock_table = soup.find('table', {'class': 'fullview-title'})
