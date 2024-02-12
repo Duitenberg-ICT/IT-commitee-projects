@@ -12,49 +12,57 @@ def get_amsterdam_stocks(url):
     driver = webdriver.Chrome(options=options)
     driver.get(url)
     
-    # Initialize an empty list to hold stock names
     stock_names = []
 
-    # Wait for JavaScript to load content
-    # You might need to add explicit waits here
-
-    # Use WebDriverWait to wait for a specific element to be loaded
     try:
-        # Wait for up to 10 seconds until an element with class 'stocks-name' is present
-        element_present = EC.presence_of_element_located((By.CLASS_NAME, 'stocks-symbol'))
-        WebDriverWait(driver, 10).until(element_present)
+        while True:
+            # Wait for the stock symbols to load on the page
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div[1]/div/div/div[1]/div[2]/div/main/section/div[3]/div/div/div[1]/div[2]/div[4]/div/a[2]'))
+            )
 
-        # Now that the page is loaded, you can fetch the page source
-        html = driver.page_source
+            # Fetch page source and parse with BeautifulSoup
+            html = driver.page_source
+            soup = BeautifulSoup(html, 'html.parser')
+            stock_entries = soup.find_all('td', class_='stocks-symbol')
 
-        # Parse the page source with BeautifulSoup
-        soup = BeautifulSoup(html, 'html.parser')
-        
-        
-        # Find all the <td> tags with the class 'stocks-name'
-        stock_entries = soup.find_all('td', class_='stocks-symbol')
+            for entry in stock_entries:
+                stock_symbol = entry.text.strip()
+                stock_names.append(stock_symbol)
 
-        for entry in stock_entries:
-            # Each stock name is within an <a> tag inside the <td class="stocks-name">
-            #a_tag = entry.find('a')
-            #if a_tag:
-            #    stock_name = a_tag.text.strip()  # Extracts the text from the <a> tag, which is the stock name
-            #    stock_names.append(stock_name)
-            stock_symbol = entry.text.strip()  # Extracts the text directly from the <td> tag, which is the stock symbol
-            stock_names.append(stock_symbol)
+            # Check if the "Next" button is present
+            try:
+                next_button = driver.find_element(By.ID,'#stocks-data-table-es_next')
+                if "disabled" not in next_button.get_attribute("class"):
+                    print("Clicking 'Next' button")
+                    next_button.click()
+                    # Wait a moment for the page to load. Adjust the wait time as necessary.
+                    WebDriverWait(driver, 10).until(
+                        EC.staleness_of(next_button)
+                    )
+                    # Optionally, wait for the next set of stocks to appear by checking for a known element to reappear
+                else:
+                    # If the "Next" button is disabled, break the loop
+                    print("No more pages")
+                    break
+                # Wait for the stock symbols to load on the page
+                WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.CLASS_NAME, 'stocks-symbol'))
+                )   
             
-
-        print(stock_names)  # Or return stock_names if you want to use the list outside the function
-        
-        
+            except Exception as e:
+                print(f"Failed to click 'Next' button or 'Next' button not found: {e}")
+                break
     finally:
-        driver.quit()  # Make sure to quit the driver to close the browser window
-    
-    # make a list of stock names in a txt file
+        driver.quit()
+
+    # Write the list of stock names to a txt file
     with open('amsterdam_stocks.txt', 'w') as file:
         for stock in stock_names:
             file.write(stock + '\n')
-        
+            
+    print(stock_names)
     return stock_names
-    
+
+# Example URL - Replace with the actual URL if it's different
 get_amsterdam_stocks('https://live.euronext.com/en/markets/amsterdam/equities/list')
