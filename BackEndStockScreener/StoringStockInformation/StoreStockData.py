@@ -6,7 +6,7 @@ import queue
 import datetime
 import subprocess
 import os
-
+from GetAmsteramStocks import get_amsterdam_stocks
 def worker(ticker_queue, data_list, lock, progress_counter):
     while not ticker_queue.empty():
         ticker = ticker_queue.get()
@@ -22,7 +22,10 @@ def worker(ticker_queue, data_list, lock, progress_counter):
         finally:
             ticker_queue.task_done()
 
-        
+# Fetching Amsterdam stocks from the txt file
+with open('amsterdam_stocks.txt', 'r') as file:
+    amsterdam_stocks = file.read().splitlines()
+      
 
 # Fetching NASDAQ tickers
 response = requests.get("https://datahub.io/core/nasdaq-listings/r/nasdaq-listed.json")
@@ -32,8 +35,12 @@ NASDAQ_Tickers = response.json()
 ticker_queue = queue.Queue()
 lock = threading.Lock()
 
-# Populate the queue
+# Populate the queue with NASDAQ tickers
 for ticker in NASDAQ_Tickers:
+    ticker_queue.put(ticker)
+
+#Populate the queue with Amsterdam stocks
+for ticker in amsterdam_stocks:
     ticker_queue.put(ticker)
 
 # List to store stock data

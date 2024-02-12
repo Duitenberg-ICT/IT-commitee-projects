@@ -9,7 +9,10 @@ app = Flask(__name__)
 
 # Initialize your StockScreener once so you don't have to reload data for every request
 screener = psd.StockScreener()
-
+@app.route('/get_standard_data', methods=['GET'])
+def get_standard_data():
+    """This route will return the original data"""
+    return jsonify(screener.get_data())
 
 @app.route('/get_filtered-parameter_data', methods=['GET'])
 def get_filtered_parameter_data():
@@ -82,7 +85,13 @@ def remove_key():
     key = request.args.get('key', default='profitMargins', type=str)
     screener.remove_key(key)
     return jsonify(screener.get_keys())
-
+@app.route('/get_industries', method = ['GET'])
+def get_unique_industries():
+    """
+    This function will return the unique industries in the data
+    
+    """
+    return jsonify(screener.get_unique_industries())
 if __name__ == '__main__':
     # Define SSL context for HTTPS
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)

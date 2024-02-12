@@ -46,6 +46,11 @@ def get_amsterdam_stocks(url):
         
     finally:
         driver.quit()  # Make sure to quit the driver to close the browser window
+    
+    # make a list of stock names in a txt file
+    with open('amsterdam_stocks.txt', 'w') as file:
+        for stock in stock_names:
+            file.write(stock + '\n')
         
     return stock_names
     

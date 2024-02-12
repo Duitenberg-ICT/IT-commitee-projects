@@ -89,7 +89,36 @@ class StockScreener:
             self.dfSelected = self.df[self.string_keys + self.numeric_keys]
         else:
             print(f"Key '{key}' is not a selected numeric key.")
+            # TODO: send exception to client
+    
+    def add_string_key(self,key):
+        """
+        Adds a new numeric key and converts it to a numeric type.
+
+        Args:
+        key (str): New column name to be added as a numeric key.
+        """
+        if key in self.df.columns:
+            self.string_keys.append(key)
+            self.dfSelected = self.df[self.string_keys + self.numeric_keys]
             
+        else:
+            print(f"Key '{key}' is not a valid column or is already numeric.")
+        
+    def remove_string_key(self,key):
+        """
+        Removes a numeric key.
+
+        Args:
+        key (str): Column name to be removed from numeric keys.
+        """
+        if key in self.string_keys:
+            self.string_keys.remove(key)
+            self.dfSelected = self.df[self.string_keys + self.numeric_keys]
+        else:
+            print(f"Key '{key}' is not a selected non-numerical key")
+            # TODO: Send exception to client
+        
     def get_numeric_keys(self):
         """
         Returns the numeric keys.
@@ -125,6 +154,15 @@ class StockScreener:
         A list of possible keys.
         """
         return self.df.keys()
+    
+    def get_data(self):
+        """
+        Returns the data.
+
+        Returns:
+        A DataFrame of the data.
+        """
+        return self.dfSelected
     
     def get_unique_industries(self):
         """
@@ -204,6 +242,14 @@ class StockScreener:
         self.percentile_filters = []
         self.numerical_filters = [] 
 
+    def get_unfiltered_stocks(self):
+        """get function for all stocks
+
+        Returns:
+            _List_: _List of all stocks with all of the keys
+        """
+        return self.df;
+    
     def apply_filters(self,sortKey = None, ascending = False):
         """
         Applies all active filters to the DataFrame sequentially, prioritizing percentile filters.
@@ -227,8 +273,6 @@ class StockScreener:
             filtered_df = filtered_df.sort_values(by=sortKey, ascending=ascending)
 
         return filtered_df
-    
-    
     
     @staticmethod
     def filter_stocks_by_percentile(df, key, top_percentile=100, top=True, industry=None):
