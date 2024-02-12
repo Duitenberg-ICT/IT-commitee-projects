@@ -6,21 +6,36 @@ import queue
 import datetime
 import subprocess
 import os
-from GetAmsteramStocks import get_amsterdam_stocks
+
 def worker(ticker_queue, data_list, lock, progress_counter):
     while not ticker_queue.empty():
-        ticker = ticker_queue.get()
+        ticker_entry = ticker_queue.get()
+        symbol = None
+        # Determine the type of ticker_entry and set the symbol accordingly
+        if isinstance(ticker_entry, dict):
+            # For NASDAQ stocks structured as dictionaries
+            symbol = ticker_entry['Symbol']
+        elif isinstance(ticker_entry, str):
+            # For Amsterdam stocks that are just strings
+            symbol = ticker_entry
+        else:
+            print(f"Unsupported ticker format: {ticker_entry}")
+            ticker_queue.task_done()
+            continue
+        
         try:
-            stock = yf.Ticker(ticker['Symbol'])
+            stock = yf.Ticker(symbol)
             info = stock.info
             with lock:
                 data_list.append(info)
                 progress_counter[0] += 1
-                print(f"Progress: {progress_counter[0]} / {len(NASDAQ_Tickers)}")
+                print(f"Progress: {progress_counter[0]} / {len(NASDAQ_Tickers) + len(amsterdam_stocks)} stock: {symbol}")
         except Exception as e:
-            print(f"Error retrieving data for {ticker['Symbol']}: {e}")
+            print(f"Error retrieving data for {symbol}: {e}")
+            progress_counter[0] += 1
         finally:
             ticker_queue.task_done()
+
 
 # Fetching Amsterdam stocks from the txt file
 with open('amsterdam_stocks.txt', 'r') as file:
@@ -35,13 +50,15 @@ NASDAQ_Tickers = response.json()
 ticker_queue = queue.Queue()
 lock = threading.Lock()
 
+#Populate the queue with Amsterdam stocks
+for ticker in amsterdam_stocks:
+    ticker_queue.put(ticker)
+    
 # Populate the queue with NASDAQ tickers
 for ticker in NASDAQ_Tickers:
     ticker_queue.put(ticker)
 
-#Populate the queue with Amsterdam stocks
-for ticker in amsterdam_stocks:
-    ticker_queue.put(ticker)
+
 
 # List to store stock data
 stock_data = []

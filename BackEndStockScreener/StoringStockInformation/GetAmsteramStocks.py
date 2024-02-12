@@ -21,7 +21,7 @@ def get_amsterdam_stocks(url):
     # Use WebDriverWait to wait for a specific element to be loaded
     try:
         # Wait for up to 10 seconds until an element with class 'stocks-name' is present
-        element_present = EC.presence_of_element_located((By.CLASS_NAME, 'stocks-name'))
+        element_present = EC.presence_of_element_located((By.CLASS_NAME, 'stocks-symbol'))
         WebDriverWait(driver, 10).until(element_present)
 
         # Now that the page is loaded, you can fetch the page source
@@ -32,14 +32,17 @@ def get_amsterdam_stocks(url):
         
         
         # Find all the <td> tags with the class 'stocks-name'
-        stock_entries = soup.find_all('td', class_='stocks-name')
+        stock_entries = soup.find_all('td', class_='stocks-symbol')
 
         for entry in stock_entries:
             # Each stock name is within an <a> tag inside the <td class="stocks-name">
-            a_tag = entry.find('a')
-            if a_tag:
-                stock_name = a_tag.text.strip()  # Extracts the text from the <a> tag, which is the stock name
-                stock_names.append(stock_name)
+            #a_tag = entry.find('a')
+            #if a_tag:
+            #    stock_name = a_tag.text.strip()  # Extracts the text from the <a> tag, which is the stock name
+            #    stock_names.append(stock_name)
+            stock_symbol = entry.text.strip()  # Extracts the text directly from the <td> tag, which is the stock symbol
+            stock_names.append(stock_symbol)
+            
 
         print(stock_names)  # Or return stock_names if you want to use the list outside the function
         
