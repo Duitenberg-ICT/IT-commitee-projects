@@ -4,7 +4,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
+import os
 def get_amsterdam_stocks(url):
     # Setup Selenium WebDriver
     options = webdriver.ChromeOptions()
@@ -56,8 +56,17 @@ def get_amsterdam_stocks(url):
     finally:
         driver.quit()
 
-    # Write the list of stock names to a txt file
-    with open('amsterdam_stocks.txt', 'w') as file:
+        # Folder path where the file will be saved
+    folder_path = 'StoringStockInformation'
+    file_name = 'amsterdam_stocks.txt'
+    full_path = os.path.join(folder_path, file_name)
+
+    # Check if the folder exists, if not, create it
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+    # Write the list of stock names to the file within the folder
+    with open(full_path, 'w') as file:
         for stock in stock_names:
             file.write(stock + '\n')
             
