@@ -1,7 +1,7 @@
 import pandas as pd
 import json
 import numpy as np
-
+import time
 class StockScreener:
     def __init__(self):
         """
@@ -34,8 +34,6 @@ class StockScreener:
         self.percentile_filters = []
         self.numerical_filters = []
         
-       
-
     def convert_to_numeric(self, keys):
         """
         Converts specified columns to numeric types.
@@ -355,13 +353,13 @@ class StockScreener:
 
         # Drop the 'percentile_rank' column before returning
         return filtered_stocks
-
+start_time = time.time()
 # Usage example
 screener = StockScreener()
 # Add filters
 screener.add_filter(StockScreener.filter_stocks_by_percentile, 'profitMargins', top_percentile=10, top=True)
 screener.add_filter(StockScreener.filter_stocks_by_parameter, 'trailingPE', min=15, max = 20)
-
+end_time = time.time()
 # Apply filters
 filtered_data = screener.apply_filters(sortKey='profitMargins')
 print(filtered_data)
@@ -371,6 +369,56 @@ screener2 = StockScreener()
 filtered_data2 = screener2.filter_stocks_by_parameter(screener2.dfSelected, 'trailingPE', min=15, max = 20)
 #print(filtered_data2)
 print(screener2.get_possible_keys())
+
+
+def test_stock_screener_performance():
+    screener = StockScreener()  # Initialize the StockScreener
+
+    # Define test filters (these should be adjusted based on your data)
+    filters = [
+        ('trailingPE', 15, 20),
+        ('profitMargins', 0.05, 0.1),
+        ('debtToEquity', 0, 1),
+        ('fiveYearAvgDividendYield', 2, 5)
+    ]
+
+    # Test 1: Single Simple Filter
+    start_time = time.time()
+    screener.add_filter(StockScreener.filter_stocks_by_parameter, 'trailingPE', min=15, max=20)
+    filtered_data = screener.apply_filters()
+    print(f"Test 1 (Single Filter): {time.time() - start_time} seconds")
+
+    screener.clear_filters()  # Reset filters for next test
+
+    # Test 2: Combined Filters
+    start_time = time.time()
+    for filter_info in filters:
+        screener.add_filter(StockScreener.filter_stocks_by_parameter, filter_info[0], min=filter_info[1], max=filter_info[2])
+    filtered_data = screener.apply_filters()
+    print(f"Test 2 (Combined Filters): {time.time() - start_time} seconds")
+
+    screener.clear_filters()
+
+    # Test 3: Large Scale Filter
+    start_time = time.time()
+    # Add multiple filters with narrow criteria to simulate a complex query
+    screener.add_filter(StockScreener.filter_stocks_by_parameter, 'trailingPE', min=10, max=15)
+    screener.add_filter(StockScreener.filter_stocks_by_percentile, 'profitMargins', top_percentile=20, top=True)
+    filtered_data = screener.apply_filters()
+    print(f"Test 3 (Large Scale Filter): {time.time() - start_time} seconds")
+
+    screener.clear_filters()
+
+    # Test 4: All Data Points
+    start_time = time.time()
+    for filter_info in filters:
+        screener.add_filter(StockScreener.filter_stocks_by_parameter, filter_info[0], min=-np.Inf, max=np.Inf)
+    filtered_data = screener.apply_filters()
+    print(f"Test 4 (All Data Points): {time.time() - start_time} seconds")
+
+# Run the performance test
+test_stock_screener_performance()
+
 #top_10_percent_profit_margin_stocks = screener.filter_stocks_by_percentile('profitMargins',industry='Asset Management', top = True)
 #print(top_10_percent_profit_margin_stocks)
 
@@ -387,3 +435,4 @@ print(screener2.get_possible_keys())
 #statistics = screener.calculate_statistics([np.mean, np.median])
 #print(statistics['mean'])
 #print(statistics['median'])
+

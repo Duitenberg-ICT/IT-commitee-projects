@@ -87,5 +87,5 @@ with open('stock_data.json', 'w') as file:
 current_date_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 # Write the update date to a txt file
-with open('StoringStockInformation/last_updated.txt', 'w') as file:
+with open('last_updated.txt', 'w') as file:
     file.write(f"{current_date_time}")
