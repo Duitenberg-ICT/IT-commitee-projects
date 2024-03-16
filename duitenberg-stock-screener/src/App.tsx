@@ -10,7 +10,7 @@ function App() {
             <Header/>
             <hr className="separator" />
 
-            <DetailedStock />
+            <AllStocks />
         </div>
     );
 }
