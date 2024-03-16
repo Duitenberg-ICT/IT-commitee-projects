@@ -1,20 +1,20 @@
 import React from 'react';
 import './App.css';
 
-import DetailedStock from "./components/detailedStockView/DetailedStock";
-import AllStocks from "./components/allStocksView/AllStocks";
-
 function App() {
     return (
         <div>
             <Header/>
             <hr className="separator" />
-
-            <AllStocks />
         </div>
     );
 }
 
+/*
+The header needs to be changed to the new design. It should stretch all the way to include the rolling
+stocks thing, where notable stock price changes appear. This component can be defined here, or it can be
+moved to (a) separate file(s) and defined there.
+ */
 function Header() {
     return (
         <div className="container-fluid">
